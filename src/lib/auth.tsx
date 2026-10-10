@@ -22,7 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setLoading(false);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+      if (next) ensureProfile(next.user);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -54,6 +57,18 @@ export function useAuth(): AuthState {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth doit être utilisé dans AuthProvider");
   return ctx;
+}
+
+// Crée le profil au premier passage, sans jamais écraser un nom déjà renseigné.
+async function ensureProfile(user: User) {
+  await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: user.email ?? "",
+      full_name: (user.user_metadata?.full_name as string | undefined) ?? "",
+    },
+    { onConflict: "id", ignoreDuplicates: true },
+  );
 }
 
 function traduireErreur(message: string): string {

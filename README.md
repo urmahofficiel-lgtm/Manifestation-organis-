@@ -82,6 +82,7 @@ supabase/migrations/    schéma SQL et règles d'accès (à exécuter dans Supab
 
 1. Créez un compte sur [supabase.com](https://supabase.com) et un nouveau projet.
 2. Ouvrez **SQL Editor**, collez le contenu de `supabase/migrations/0001_init.sql`, puis cliquez sur **Run**.
+   Toutes les tables sont créées dans le schéma `manifestation`. Si le projet est partagé avec d'autres applications, ajoutez ce schéma dans **Settings → API → Exposed schemas**.
 3. Dans **Project Settings → API**, copiez l'URL du projet et la clé `anon public`.
 4. Dans **Authentication → Providers → Email**, activez l'e-mail. Pour tester sans confirmation par
    e-mail, désactivez « Confirm email ».
