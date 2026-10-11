@@ -52,7 +52,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {!isPublicPage && (
         <footer className="footer">
           <p className="muted small">
-            Manifestation Organiser est un outil d'organisation. Il ne remplace ni un conseil juridique ni les
+            Agora est un outil d'organisation. Il ne remplace ni un conseil juridique ni les
             démarches officielles. <Link to="/guide">Guide légal</Link>
           </p>
         </footer>

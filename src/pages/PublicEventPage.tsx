@@ -19,7 +19,7 @@ export function PublicEventPage() {
       .then((ev) => {
         setEvent(ev);
         if (ev) {
-          document.title = `${ev.title} · Manifestation Organiser`;
+          document.title = `${ev.title} · Agora`;
           getPublicSlogans(id).then(setSlogans).catch(() => setSlogans([]));
         }
       })
@@ -33,7 +33,7 @@ export function PublicEventPage() {
         <h1>Page introuvable</h1>
         <p className="muted">Cet événement n'existe pas ou sa page publique n'est pas activée.</p>
         <Link to="/" className="btn">
-          Découvrir Manifestation Organiser
+          Découvrir Agora
         </Link>
       </div>
     );
@@ -161,7 +161,7 @@ export function PublicEventPage() {
       </section>
 
       <p className="row center muted small">
-        <LogoMark size={20} /> Organisé avec <Link to="/">Manifestation Organiser</Link>
+        <LogoMark size={20} /> Organisé avec <Link to="/">Agora</Link>
       </p>
     </article>
   );

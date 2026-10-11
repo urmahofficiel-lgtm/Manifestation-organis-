@@ -1,5 +1,6 @@
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { LogoMark } from "../components/Logo";
 
 const AUDIENCES = [
   { title: "Associations", text: "Coordonnez bénévoles et membres, de la préparation au jour J." },
@@ -26,7 +27,10 @@ export function HomePage() {
   return (
     <div>
       <section className="hero-poster">
-        <span className="badge">Gratuit · Pour associations, syndicats, collectifs et citoyens</span>
+        <div className="row wrap">
+          <LogoMark size={56} />
+          <span className="badge">Gratuit · Pour associations, syndicats, collectifs et citoyens</span>
+        </div>
         <h2 className="hero-title">
           Organisez. <mark>Mobilisez.</mark> Manifestez.
         </h2>
@@ -42,6 +46,20 @@ export function HomePage() {
             J'ai déjà un compte
           </Link>
         </div>
+      </section>
+
+      <section className="section story card">
+        <h2>Pourquoi « Agora » ?</h2>
+        <p>
+          Dans l'Athènes antique, l'<strong>agora</strong> était la grande place publique où les citoyens se réunissaient
+          pour débattre, prendre la parole et décider ensemble. C'est là qu'est née l'idée de démocratie, avec deux
+          principes : l'<strong>isègoria</strong>, le droit égal de chacun à parler devant l'assemblée, et la{" "}
+          <strong>parrêsia</strong>, le courage de dire franchement ce que l'on pense.
+        </p>
+        <p>
+          Vingt-cinq siècles plus tard, Agora est votre place publique pour préparer des rassemblements libres, déclarés et
+          sûrs, où chacun peut faire entendre sa voix.
+        </p>
       </section>
 
       <section className="section">

@@ -53,7 +53,7 @@ code { background: var(--soft); padding: 0.1rem 0.35rem; border-radius: 6px; fon
 }
 .brand { text-decoration: none; color: #fff; }
 .logo { display: inline-flex; align-items: center; gap: 0.55rem; }
-.logo-text { font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; font-size: 0.98rem; color: #fff; }
+.logo-text { font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; font-size: 1.2rem; color: #fff; }
 .topbar-actions { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
 .navlink { color: #d6d3d1; text-decoration: none; font-weight: 700; padding: 0.45rem 0.7rem; border-radius: 999px; }
 .navlink:hover { color: #fff; }
@@ -317,7 +317,7 @@ label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.92rem; 
   .bubble { max-width: 95%; }
   .tiles { grid-template-columns: repeat(2, 1fr); }
   .footer { padding-bottom: 7rem; }
-  .logo-text { font-size: 0.8rem; white-space: nowrap; }
+  .logo-text { font-size: 1.05rem; white-space: nowrap; }
 }
 
 /* Carte : légende et repères */
@@ -381,3 +381,8 @@ details summary { cursor: pointer; font-weight: 700; margin: 0.75rem 0 0.5rem; }
   .map { border: 1px solid #999; }
   .leaflet-control-container { display: none; }
 }
+
+.story { border-left: 10px solid var(--yellow); }
+.story h2 { margin-top: 0; }
+/* Le logo (fond rouge) reste visible sur l'affiche rouge de l'accueil */
+.hero-poster svg { border: 3px solid var(--ink); border-radius: 16px; box-shadow: var(--shadow-sm); }

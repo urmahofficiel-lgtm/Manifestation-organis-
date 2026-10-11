@@ -1,4 +1,8 @@
-# Manifestation Organiser
+# Agora
+
+Dans l'Athènes antique, l'agora était la place publique où les citoyens se réunissaient pour débattre
+librement : le berceau de la démocratie. Agora est la place publique numérique des organisateurs de
+manifestations.
 
 Un espace commun pour organiser une manifestation : événements et carte, équipe et tâches,
 matériel, annonces et démarches administratives. Pensé pour une équipe d'organisateurs qui se
