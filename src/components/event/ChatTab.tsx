@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { createMessage, deleteMessage, listMessages } from "../../lib/api";
 import { markSeen } from "../../lib/seen";
-import type { MemberRow, MessageRow } from "../../lib/types";
+import type { Channel, MemberRow, MessageRow } from "../../lib/types";
 
-type Props = { eventId: string; members: MemberRow[]; userId: string; canEdit: boolean };
+type Props = { eventId: string; channel: Channel; members: MemberRow[]; userId: string; canEdit: boolean };
 
 const POLL_MS = 5000;
 
 // Discussion d'équipe. Les nouveaux messages sont rechargés toutes les 5 secondes tant que l'onglet est visible.
-export function ChatTab({ eventId, members, userId, canEdit }: Props) {
+export function ChatTab({ eventId, channel, members, userId, canEdit }: Props) {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,12 +17,12 @@ export function ChatTab({ eventId, members, userId, canEdit }: Props) {
 
   const load = useCallback(async () => {
     try {
-      setMessages(await listMessages(eventId));
-      markSeen(eventId);
+      setMessages(await listMessages(eventId, channel));
+      if (channel === "equipe") markSeen(eventId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chargement impossible.");
     }
-  }, [eventId]);
+  }, [eventId, channel]);
 
   useEffect(() => {
     load();
@@ -45,7 +45,7 @@ export function ChatTab({ eventId, members, userId, canEdit }: Props) {
     if (!value) return;
     setError(null);
     try {
-      await createMessage(eventId, value, userId);
+      await createMessage(eventId, value, userId, channel);
       setBody("");
       await load();
     } catch (err) {
@@ -70,6 +70,9 @@ export function ChatTab({ eventId, members, userId, canEdit }: Props) {
 
   return (
     <div className="stack">
+      {channel === "orga" && (
+        <p className="notice notice-warn small">Canal réservé aux organisateurs : les membres ne le voient pas.</p>
+      )}
       <div className="chat" aria-live="polite">
         {messages.length === 0 && <p className="muted">Aucun message. Lancez la discussion.</p>}
         {messages.map((m) => {

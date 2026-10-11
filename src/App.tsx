@@ -10,6 +10,8 @@ import { InvitePage } from "./pages/InvitePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { NewEventPage } from "./pages/NewEventPage";
 import { PublicEventPage } from "./pages/PublicEventPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { LetterPage } from "./pages/LetterPage";
 import { EventPage } from "./pages/EventPage";
 import { SetupPage } from "./pages/SetupPage";
 
@@ -55,6 +57,22 @@ export default function App() {
           element={
             <RequireAuth>
               <EventPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profil"
+          element={
+            <RequireAuth>
+              <ProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/evenements/:id/lettre"
+          element={
+            <RequireAuth>
+              <LetterPage />
             </RequireAuth>
           }
         />

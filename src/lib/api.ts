@@ -2,7 +2,15 @@
 // Les droits sont vérifiés par la base (RLS), pas seulement par l'interface.
 import { supabase } from "./supabase";
 import type {
+  AlertLevel,
+  AlertRow,
   AnnouncementRow,
+  Channel,
+  ContactKind,
+  ContactRow,
+  DebriefRow,
+  Declarant,
+  FieldRole,
   DeclarationRow,
   EventRow,
   EventSummary,
@@ -36,7 +44,35 @@ export async function getEvent(id: string): Promise<EventRow> {
   return unwrap(await supabase.from("events").select("*").eq("id", id).single());
 }
 
-export type EventInput = Omit<EventRow, "id" | "created_by" | "created_at" | "is_public">;
+// Champs du formulaire principal d'un événement (le parcours et les consignes ont leur propre écran)
+export type EventInput = Pick<
+  EventRow,
+  | "title"
+  | "description"
+  | "theme"
+  | "status"
+  | "starts_at"
+  | "ends_at"
+  | "place_name"
+  | "address"
+  | "lat"
+  | "lng"
+  | "expected_count"
+  | "organizer_name"
+>;
+
+export type EventPlanInput = Pick<
+  EventRow,
+  | "purpose"
+  | "route"
+  | "pois"
+  | "route_description"
+  | "departure_at"
+  | "dispersal_at"
+  | "dispersal_place"
+  | "municipalities"
+  | "safety_notes"
+>;
 
 export async function createEvent(input: EventInput, userId: string): Promise<string> {
   // Pas de .select() ici : le créateur devient membre par trigger, et la lecture
@@ -46,7 +82,7 @@ export async function createEvent(input: EventInput, userId: string): Promise<st
   return id;
 }
 
-export async function updateEvent(id: string, input: Partial<EventInput>): Promise<void> {
+export async function updateEvent(id: string, input: Partial<EventInput & EventPlanInput>): Promise<void> {
   unwrap(await supabase.from("events").update(input).eq("id", id));
 }
 
@@ -60,7 +96,7 @@ export async function listMembers(eventId: string): Promise<MemberRow[]> {
   return unwrap(
     await supabase
       .from("event_members")
-      .select("event_id, user_id, role, profiles(id, email, full_name)")
+      .select("event_id, user_id, role, field_role, checked_in_at, profiles(id, email, full_name)")
       .eq("event_id", eventId),
   ) as unknown as MemberRow[];
 }
@@ -170,7 +206,9 @@ export async function getDeclaration(eventId: string): Promise<DeclarationRow | 
 
 export async function saveDeclaration(
   eventId: string,
-  input: Pick<DeclarationRow, "authority" | "submitted_at" | "reference" | "notes">,
+  input: Partial<
+    Pick<DeclarationRow, "authority" | "submitted_at" | "reference" | "notes" | "letter_generated_at" | "banned" | "ban_notes">
+  >,
 ): Promise<void> {
   unwrap(await supabase.from("declarations").upsert({ ...input, event_id: eventId }));
 }
@@ -214,20 +252,26 @@ export async function deleteSlogan(id: string): Promise<void> {
 
 // Discussion
 
-export async function listMessages(eventId: string): Promise<MessageRow[]> {
+export async function listMessages(eventId: string, channel: Channel): Promise<MessageRow[]> {
   const rows = unwrap(
     await supabase
       .from("messages")
       .select("*")
       .eq("event_id", eventId)
+      .eq("channel", channel)
       .order("created_at", { ascending: false })
       .limit(200),
   ) as MessageRow[];
   return rows.reverse();
 }
 
-export async function createMessage(eventId: string, body: string, authorId: string): Promise<void> {
-  unwrap(await supabase.from("messages").insert({ event_id: eventId, body, author_id: authorId }));
+export async function createMessage(
+  eventId: string,
+  body: string,
+  authorId: string,
+  channel: Channel,
+): Promise<void> {
+  unwrap(await supabase.from("messages").insert({ event_id: eventId, body, author_id: authorId, channel }));
 }
 
 export async function deleteMessage(id: string): Promise<void> {
@@ -293,7 +337,7 @@ export async function getEventSummary(
   lastSeen: string | null,
 ): Promise<EventSummary> {
   const byEvent = (q: ReturnType<ReturnType<typeof supabase.from>["select"]>) => q.eq("event_id", eventId);
-  const [members, tasksTotal, tasksDone, materials, slogansValid, slogansProposed, messages, unread, announcements, declaration] =
+  const [members, tasksTotal, tasksDone, materials, slogansValid, slogansProposed, messages, unread, announcements, alertsOpen, declaration] =
     await Promise.all([
       countRows("event_members", byEvent),
       countRows("tasks", byEvent),
@@ -301,12 +345,13 @@ export async function getEventSummary(
       countRows("materials", byEvent),
       countRows("slogans", (q) => byEvent(q).eq("status", "valide")),
       countRows("slogans", (q) => byEvent(q).eq("status", "propose")),
-      countRows("messages", byEvent),
+      countRows("messages", (q) => byEvent(q).eq("channel", "equipe")),
       countRows("messages", (q) => {
-        const base = byEvent(q).neq("author_id", userId);
+        const base = byEvent(q).eq("channel", "equipe").neq("author_id", userId);
         return lastSeen ? base.gt("created_at", lastSeen) : base;
       }),
       countRows("announcements", byEvent),
+      countRows("alerts", (q) => byEvent(q).eq("resolved", false)),
       getDeclaration(eventId),
     ]);
   return {
@@ -319,6 +364,7 @@ export async function getEventSummary(
     messages,
     unread,
     announcements,
+    alertsOpen,
     declarationSubmitted: Boolean(declaration?.submitted_at),
   };
 }
@@ -348,4 +394,90 @@ export async function getPublicEvent(id: string): Promise<PublicEvent | null> {
 export async function getPublicSlogans(id: string): Promise<string[]> {
   const rows = unwrap(await supabase.rpc("get_public_slogans", { ev: id })) as { text: string }[] | null;
   return (rows ?? []).map((r) => r.text);
+}
+
+// Identité du déclarant (visible par soi uniquement)
+
+export async function getMyDeclarant(userId: string): Promise<Declarant | null> {
+  return unwrap(await supabase.from("declarants").select("*").eq("user_id", userId).maybeSingle());
+}
+
+export async function saveMyDeclarant(input: Declarant): Promise<void> {
+  unwrap(await supabase.from("declarants").upsert({ ...input, updated_at: new Date().toISOString() }));
+}
+
+// Déclarants engagés pour une manif
+
+export async function listSignatories(eventId: string): Promise<{ user_id: string; committed_at: string }[]> {
+  return unwrap(
+    await supabase.from("event_signatories").select("user_id, committed_at").eq("event_id", eventId).order("committed_at"),
+  );
+}
+
+export async function commitAsSignatory(eventId: string, userId: string): Promise<void> {
+  unwrap(await supabase.from("event_signatories").insert({ event_id: eventId, user_id: userId }));
+}
+
+export async function withdrawSignatory(eventId: string, userId: string): Promise<void> {
+  unwrap(await supabase.from("event_signatories").delete().eq("event_id", eventId).eq("user_id", userId));
+}
+
+export async function getDeclarationIdentities(eventId: string): Promise<Declarant[]> {
+  return (unwrap(await supabase.rpc("get_declaration_identities", { ev: eventId })) as Declarant[] | null) ?? [];
+}
+
+// Jour J
+
+export async function setFieldRole(eventId: string, userId: string, fieldRole: FieldRole | null): Promise<void> {
+  unwrap(
+    await supabase.from("event_members").update({ field_role: fieldRole }).eq("event_id", eventId).eq("user_id", userId),
+  );
+}
+
+export async function checkIn(eventId: string, present: boolean): Promise<void> {
+  unwrap(await supabase.rpc("check_in", { ev: eventId, present }));
+}
+
+export async function listContacts(eventId: string): Promise<ContactRow[]> {
+  return unwrap(await supabase.from("event_contacts").select("*").eq("event_id", eventId).order("created_at"));
+}
+
+export async function createContact(
+  eventId: string,
+  input: { kind: ContactKind; label: string; phone: string; notes: string },
+): Promise<void> {
+  unwrap(await supabase.from("event_contacts").insert({ ...input, event_id: eventId }));
+}
+
+export async function deleteContact(id: string): Promise<void> {
+  unwrap(await supabase.from("event_contacts").delete().eq("id", id));
+}
+
+export async function listAlerts(eventId: string): Promise<AlertRow[]> {
+  return unwrap(
+    await supabase
+      .from("alerts")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false })
+      .limit(100),
+  );
+}
+
+export async function createAlert(eventId: string, authorId: string, level: AlertLevel, body: string): Promise<void> {
+  unwrap(await supabase.from("alerts").insert({ event_id: eventId, author_id: authorId, level, body }));
+}
+
+export async function setAlertResolved(id: string, resolved: boolean): Promise<void> {
+  unwrap(await supabase.from("alerts").update({ resolved }).eq("id", id));
+}
+
+// Bilan
+
+export async function getDebrief(eventId: string): Promise<DebriefRow | null> {
+  return unwrap(await supabase.from("debriefs").select("*").eq("event_id", eventId).maybeSingle());
+}
+
+export async function saveDebrief(input: DebriefRow): Promise<void> {
+  unwrap(await supabase.from("debriefs").upsert({ ...input, updated_at: new Date().toISOString() }));
 }

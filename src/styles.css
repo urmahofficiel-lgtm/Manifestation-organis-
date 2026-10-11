@@ -66,7 +66,7 @@ code { background: var(--soft); padding: 0.1rem 0.35rem; border-radius: 6px; fon
 @media (max-width: 760px) {
   .desktop-only { display: none !important; }
   .bottom-nav {
-    display: grid; grid-template-columns: repeat(3, 1fr); align-items: end;
+    display: grid; grid-template-columns: repeat(4, 1fr); align-items: end;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     background: var(--ink); padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom));
   }
@@ -318,4 +318,66 @@ label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.92rem; 
   .tiles { grid-template-columns: repeat(2, 1fr); }
   .footer { padding-bottom: 7rem; }
   .logo-text { font-size: 0.8rem; white-space: nowrap; }
+}
+
+/* Carte : légende et repères */
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; margin-top: 0.5rem; }
+.legend span { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+.legend i, .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); flex: none; }
+.legend i.line { width: 22px; height: 6px; border-radius: 3px; border: none; background: var(--red); }
+.chip.active { background: var(--yellow); border-style: solid; }
+.chip.level-urgence { background: var(--red); color: #fff; }
+.chip.level-attention { background: #fdba74; }
+
+/* Suggestions d'adresse */
+.suggestions { gap: 0.3rem; }
+.suggestion { width: 100%; text-align: left; font: inherit; font-weight: 600; cursor: pointer; background: var(--surface); border: 2px solid var(--line); border-radius: 10px; padding: 0.55rem 0.75rem; }
+.suggestion:hover { background: var(--yellow); }
+
+/* Jour J */
+.jourj-banner {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: space-between;
+  background: var(--ink); color: #fff; border-radius: var(--radius); padding: 1rem; border: 2px solid var(--line);
+}
+.jourj-banner .btn { box-shadow: none; }
+.presence { width: 12px; height: 12px; border-radius: 50%; background: #d6d3d1; border: 2px solid var(--ink); flex: none; }
+.presence.on { background: #22c55e; }
+.alert-item { list-style: none; border: 2px solid var(--line); border-left-width: 8px; border-radius: 12px; padding: 0.6rem 0.8rem; background: var(--surface); }
+.alert-item p { margin: 0.35rem 0; font-weight: 600; }
+.alert-item.level-info { border-left-color: #0ea5e9; }
+.alert-item.level-attention { border-left-color: #f97316; }
+.alert-item.level-urgence { border-left-color: var(--red); background: #fff1f2; }
+.alert-item.resolved { opacity: 0.6; }
+details summary { cursor: pointer; font-weight: 700; margin: 0.75rem 0 0.5rem; }
+
+/* Page publique */
+.timeline { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.timeline li { display: flex; gap: 0.75rem; align-items: baseline; }
+.timeline strong { background: var(--yellow); border: 2px solid var(--line); border-radius: 8px; padding: 0.05rem 0.45rem; min-width: 4.2rem; text-align: center; }
+.safety-card { border-top: 10px solid #15803d; }
+
+/* Signature et lettre */
+.signature-pad { width: 100%; max-width: 480px; height: 160px; background: #fff; border: 2px dashed var(--line); border-radius: 12px; touch-action: none; }
+.letter {
+  background: #fff; color: #111; border: 2px solid var(--line); border-radius: 6px; padding: 2.2rem 2rem; margin-top: 1rem;
+  font-family: Georgia, "Times New Roman", serif; font-size: 0.98rem; line-height: 1.55;
+}
+.letter h2 { font-family: var(--font); text-transform: none; font-size: 1.1rem; }
+.letter-head { display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.letter-to { text-align: right; }
+.letter-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.letter-table th, .letter-table td { border: 1px solid #999; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+.letter-table th { width: 32%; background: #f5f5f4; font-weight: 700; }
+.letter-signatures { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.letter-signature img { max-width: 220px; max-height: 90px; display: block; }
+.signature-line { width: 220px; height: 70px; border-bottom: 1px solid #111; color: #999; font-size: 0.8rem; display: flex; align-items: flex-end; }
+.letter-annex { margin-top: 2rem; page-break-before: always; break-before: page; }
+
+@media print {
+  body { background: #fff; }
+  .topbar, .bottom-nav, .footer, .no-print { display: none !important; }
+  .container { padding: 0; max-width: none; }
+  .letter { border: none; padding: 0; margin: 0; }
+  .map { border: 1px solid #999; }
+  .leaflet-control-container { display: none; }
 }

@@ -27,7 +27,10 @@ export function Layout({ children }: { children: ReactNode }) {
               <NavLink to="/guide" className="navlink desktop-only">
                 Guide légal
               </NavLink>
-              <button className="btn btn-ghost" onClick={() => signOut()}>
+              <NavLink to="/profil" className="navlink desktop-only">
+                Profil
+              </NavLink>
+              <button className="btn btn-ghost desktop-only" onClick={() => signOut()}>
                 Déconnexion
               </button>
             </>
@@ -63,14 +66,20 @@ export function Layout({ children }: { children: ReactNode }) {
             </span>
             Mes manifs
           </NavLink>
-          <NavLink to="/evenements/nouveau" className="create" aria-label="Créer un événement">
-            +
-          </NavLink>
           <NavLink to="/guide">
             <span className="nav-icon" aria-hidden>
               ⚖️
             </span>
-            Guide légal
+            Guide
+          </NavLink>
+          <NavLink to="/evenements/nouveau" className="create" aria-label="Créer un événement">
+            +
+          </NavLink>
+          <NavLink to="/profil">
+            <span className="nav-icon" aria-hidden>
+              👤
+            </span>
+            Profil
           </NavLink>
         </nav>
       )}

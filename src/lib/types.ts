@@ -54,13 +54,29 @@ export type EventRow = {
   expected_count: number | null;
   organizer_name: string;
   is_public: boolean;
+  purpose: string;
+  route: LatLng[];
+  pois: Poi[];
+  route_description: string;
+  departure_at: string | null;
+  dispersal_at: string | null;
+  dispersal_place: string;
+  municipalities: string;
+  safety_notes: string;
   created_by: string;
   created_at: string;
 };
 
 export type Profile = { id: string; email: string; full_name: string };
 
-export type MemberRow = { event_id: string; user_id: string; role: Role; profiles: Profile };
+export type MemberRow = {
+  event_id: string;
+  user_id: string;
+  role: Role;
+  field_role: FieldRole | null;
+  checked_in_at: string | null;
+  profiles: Profile;
+};
 
 export type TaskRow = {
   id: string;
@@ -95,6 +111,9 @@ export type DeclarationRow = {
   submitted_at: string | null;
   reference: string;
   notes: string;
+  letter_generated_at: string | null;
+  banned: boolean;
+  ban_notes: string;
 };
 
 export type MyProfile = Profile & { account_type: AccountType; organization_name: string };
@@ -108,11 +127,14 @@ export type SloganRow = {
   created_at: string;
 };
 
+export type Channel = "equipe" | "orga";
+
 export type MessageRow = {
   id: string;
   event_id: string;
   author_id: string;
   body: string;
+  channel: Channel;
   created_at: string;
 };
 
@@ -144,6 +166,14 @@ export type PublicEvent = Pick<
   | "lng"
   | "organizer_name"
   | "expected_count"
+  | "purpose"
+  | "route"
+  | "pois"
+  | "route_description"
+  | "departure_at"
+  | "dispersal_at"
+  | "dispersal_place"
+  | "safety_notes"
 >;
 
 export type EventSummary = {
@@ -156,6 +186,7 @@ export type EventSummary = {
   messages: number;
   unread: number;
   announcements: number;
+  alertsOpen: number;
   declarationSubmitted: boolean;
 };
 
@@ -178,4 +209,73 @@ export const THEME_COLORS: Record<ThemeId, string> = {
   paix: "#0ea5e9",
   culture: "#db2777",
   autre: "#111111",
+};
+
+// Carte : parcours et repères
+export type LatLng = [number, number];
+
+export const POI_KINDS = [
+  { id: "rassemblement", label: "Rassemblement", color: "#e4002b" },
+  { id: "secours", label: "Poste de secours", color: "#15803d" },
+  { id: "eau", label: "Point d'eau", color: "#0ea5e9" },
+  { id: "dispersion", label: "Dispersion", color: "#7b2cbf" },
+  { id: "autre", label: "Autre repère", color: "#111111" },
+] as const;
+
+export type PoiKind = (typeof POI_KINDS)[number]["id"];
+export type Poi = { lat: number; lng: number; kind: PoiKind; label: string };
+
+// Rôles sur le terrain le jour J
+export const FIELD_ROLES = [
+  { id: "responsable", label: "Responsable" },
+  { id: "service_ordre", label: "Service d'ordre" },
+  { id: "secours", label: "Secours" },
+  { id: "liaison", label: "Liaison autorités" },
+  { id: "presse", label: "Presse" },
+  { id: "juridique", label: "Juridique" },
+  { id: "logistique", label: "Logistique" },
+] as const;
+
+export type FieldRole = (typeof FIELD_ROLES)[number]["id"];
+
+export type Declarant = {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  address_line: string;
+  postal_code: string;
+  city: string;
+  phone: string;
+  address_verified: boolean;
+};
+
+export type ContactKind = "autorites" | "juridique" | "secours" | "autre";
+
+export type ContactRow = {
+  id: string;
+  event_id: string;
+  kind: ContactKind;
+  label: string;
+  phone: string;
+  notes: string;
+};
+
+export type AlertLevel = "info" | "attention" | "urgence";
+
+export type AlertRow = {
+  id: string;
+  event_id: string;
+  author_id: string;
+  level: AlertLevel;
+  body: string;
+  resolved: boolean;
+  created_at: string;
+};
+
+export type DebriefRow = {
+  event_id: string;
+  participants_estimate: number | null;
+  incidents: string;
+  press: string;
+  lessons: string;
 };
