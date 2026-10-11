@@ -108,7 +108,10 @@ supabase/migrations/    schéma SQL et règles d'accès (à exécuter dans Supab
    et `0005_declaration_dossier.sql`.
    Toutes les tables sont créées dans le schéma `manifestation`. Si le projet est partagé avec d'autres applications, ajoutez ce schéma dans **Settings → API → Exposed schemas**.
 3. Dans **Project Settings → API**, copiez l'URL du projet et la clé `anon public`.
-4. Dans **Authentication → Providers → Email**, activez l'e-mail. Pour tester sans confirmation par
+4. Dans **Authentication → URL Configuration → Redirect URLs**, ajoutez l'adresse du site suivie de `/**`
+   (par exemple `https://agora-manif.vercel.app/**`) : c'est là que revient le lien de confirmation d'e-mail.
+   Si le projet Supabase est partagé avec une autre application, ne changez pas le « Site URL ».
+5. Dans **Authentication → Providers → Email**, activez l'e-mail. Pour tester sans confirmation par
    e-mail, désactivez « Confirm email ».
 
 ### 2. Configurer l'application

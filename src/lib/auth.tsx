@@ -18,7 +18,14 @@ type AuthState = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
   signOut: () => Promise<void>;
+  resendConfirmation: (email: string) => Promise<void>;
 };
+
+// Après confirmation de l'e-mail, Supabase doit revenir sur Agora (et non sur l'autre application du projet).
+// Cette adresse doit figurer dans les « Redirect URLs » du projet Supabase.
+function confirmationRedirect(): string {
+  return `${window.location.origin}/connexion`;
+}
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -51,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
+          emailRedirectTo: confirmationRedirect(),
           data: { full_name: fullName, account_type: accountType, organization_name: organizationName },
         },
       });
@@ -58,6 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     async signOut() {
       await supabase.auth.signOut();
+    },
+    async resendConfirmation(email) {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: confirmationRedirect() },
+      });
+      if (error) throw new Error(traduireErreur(error.message));
     },
   };
 
@@ -86,6 +102,10 @@ async function ensureProfile(user: User) {
 
 function traduireErreur(message: string): string {
   if (message.includes("Invalid login credentials")) return "E-mail ou mot de passe incorrect.";
+  if (message.includes("Email not confirmed"))
+    return "Votre adresse e-mail n'est pas encore confirmée. Cliquez sur le lien reçu par e-mail, ou renvoyez-le ci-dessous.";
+  if (message.includes("security purposes") || message.includes("rate limit"))
+    return "Trop de demandes en peu de temps. Patientez une minute avant de réessayer.";
   if (message.includes("already registered")) return "Un compte existe déjà avec cet e-mail.";
   if (message.includes("Password should be at least")) return "Le mot de passe doit contenir au moins 6 caractères.";
   return message;

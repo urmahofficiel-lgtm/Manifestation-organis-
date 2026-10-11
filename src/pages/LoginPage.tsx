@@ -9,7 +9,7 @@ export function safeRedirect(value: string | null): string {
 }
 
 export function LoginPage() {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, resendConfirmation } = useAuth();
   const [params] = useSearchParams();
   const [mode, setMode] = useState<"connexion" | "inscription">(
     params.get("mode") === "inscription" ? "inscription" : "connexion",
@@ -23,16 +23,44 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  // Erreur renvoyée dans l'adresse par le lien de confirmation (lien expiré ou déjà utilisé)
+  const [linkError] = useState(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const code = hash.get("error_code") ?? new URLSearchParams(window.location.search).get("error_code");
+    if (!code) return null;
+    return code === "otp_expired"
+      ? "Ce lien de confirmation a expiré ou a déjà été utilisé. Renvoyez-en un nouveau ci-dessous."
+      : "Le lien de confirmation n'a pas fonctionné. Renvoyez-en un nouveau ci-dessous.";
+  });
 
   if (user) return <Navigate to={safeRedirect(params.get("suite"))} replace />;
 
   const needsOrganization = accountType !== "individu";
   const typeInfo = ACCOUNT_TYPES.find((t) => t.id === accountType);
 
+  async function resend() {
+    if (!email) {
+      setError("Indiquez votre adresse e-mail ci-dessus, puis renvoyez le lien.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await resendConfirmation(email);
+      setInfo("Un nouvel e-mail de confirmation vient d'être envoyé. Pensez à regarder dans les spams.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Envoi impossible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    setNeedsConfirmation(false);
     setBusy(true);
     try {
       if (mode === "connexion") {
@@ -45,10 +73,13 @@ export function LoginPage() {
           accountType,
           organizationName: needsOrganization ? organizationName.trim() : "",
         });
-        setInfo("Compte créé. Si la confirmation par e-mail est activée, vérifiez votre boîte mail.");
+        setInfo("Compte créé. Ouvrez l'e-mail de confirmation et cliquez sur le lien : vous reviendrez ici, connecté.");
+        setNeedsConfirmation(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      const message = err instanceof Error ? err.message : "Une erreur est survenue.";
+      setError(message);
+      if (message.includes("pas encore confirmée")) setNeedsConfirmation(true);
     } finally {
       setBusy(false);
     }
@@ -116,8 +147,14 @@ export function LoginPage() {
             </span>
           </label>
         )}
+        {linkError && !error && !info && <p className="error">{linkError}</p>}
         {error && <p className="error">{error}</p>}
         {info && <p className="success">{info}</p>}
+        {(needsConfirmation || linkError) && (
+          <button type="button" className="btn" onClick={resend} disabled={busy}>
+            Renvoyer l'e-mail de confirmation
+          </button>
+        )}
         <button className="btn btn-primary" disabled={busy}>
           {mode === "connexion" ? "Se connecter" : "Créer mon compte"}
         </button>
