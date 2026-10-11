@@ -4,17 +4,19 @@ Un espace commun pour organiser une manifestation : événements et carte, équi
 matériel, annonces et démarches administratives. Pensé pour une équipe d'organisateurs qui se
 connaît et travaille à plusieurs.
 
-## Fonctionnalités (version 1)
+## Fonctionnalités
 
-- **Événements** : titre, thème, date et heure, lieu, point de rassemblement placé sur la carte,
-  nombre de participants attendus, statut (brouillon, à déclarer, déclaré, confirmé, terminé).
-- **Équipe** : ajout d'une personne par e-mail (elle doit avoir un compte), rôles
-  propriétaire / organisateur / membre.
-- **Tâches** : liste de tâches avec responsable attribué et case « faite ».
-- **Matériel** : banderoles, sono, gilets, eau… avec quantité, personne qui le garde et emplacement.
-- **Annonces** : messages internes à l'équipe.
-- **Démarches** : préfecture, date de dépôt, numéro de récépissé, notes. Un rappel calcule la date
-  limite de déclaration (indicatif, voir plus bas).
+- **Page d'accueil** publique et **guide légal** (déclaration d'une manifestation en France).
+- **Inscription adaptée** : citoyen, association, syndicat ou collectif, avec le nom de l'organisation.
+- **Événements** : titre, thème, organisateur, date et heure, lieu, point de rassemblement sur la carte,
+  participants attendus, statut (brouillon, à déclarer, déclaré, confirmé, terminé).
+- **Équipe** : ajout par e-mail ou **lien d'invitation** (valable 30 jours, nombre d'usages limitable),
+  rôles propriétaire / organisateur / membre.
+- **Tâches**, **matériel** (quantité, gardien, emplacement), **annonces**.
+- **Slogans** : propositions des membres, validation par les organisateurs, idées par thème.
+- **Discussion d'équipe** par événement (rafraîchie toutes les 5 secondes).
+- **Démarches** : suivi de la déclaration, avec la période de dépôt calculée (de 15 jours francs à
+  3 jours francs avant la manifestation).
 
 ## Architecture
 
@@ -54,6 +56,9 @@ connaît et travaille à plusieurs.
 | `materials`      | Matériel, avec la personne qui le garde                           |
 | `announcements`  | Annonces internes                                                 |
 | `declarations`   | Démarches administratives (une par événement)                     |
+| `slogans`        | Slogans proposés ou validés                                       |
+| `messages`       | Discussion d'équipe                                               |
+| `invites`        | Liens d'invitation (code, rôle, expiration, usages)               |
 
 Rôles : `owner` (créateur, peut tout faire, supprime l'événement), `organizer` (modifie l'événement,
 gère l'équipe et les démarches), `member` (voit tout, crée tâches, matériel et annonces).
@@ -72,7 +77,7 @@ src/
     declaration.ts      calcul de la date limite de déclaration (+ tests)
   components/           composants réutilisables (carte, formulaire, bandeau de statut…)
   components/event/     onglets d'un événement
-  pages/                connexion, liste des événements, détail d'un événement
+  pages/                accueil, guide légal, connexion, invitation, liste et détail des événements
 supabase/migrations/    schéma SQL et règles d'accès (à exécuter dans Supabase)
 ```
 
@@ -81,7 +86,8 @@ supabase/migrations/    schéma SQL et règles d'accès (à exécuter dans Supab
 ### 1. Créer le projet Supabase (une seule fois)
 
 1. Créez un compte sur [supabase.com](https://supabase.com) et un nouveau projet.
-2. Ouvrez **SQL Editor**, collez le contenu de `supabase/migrations/0001_init.sql`, puis cliquez sur **Run**.
+2. Ouvrez **SQL Editor**, collez le contenu de `supabase/migrations/0001_init.sql`, cliquez sur **Run**, puis
+   faites de même avec `supabase/migrations/0002_features.sql`.
    Toutes les tables sont créées dans le schéma `manifestation`. Si le projet est partagé avec d'autres applications, ajoutez ce schéma dans **Settings → API → Exposed schemas**.
 3. Dans **Project Settings → API**, copiez l'URL du projet et la clé `anon public`.
 4. Dans **Authentication → Providers → Email**, activez l'e-mail. Pour tester sans confirmation par
@@ -122,9 +128,9 @@ Le site est statique. Sur Vercel ou Netlify, il suffit de connecter le dépôt G
 
 ## Points à vérifier avant un usage réel
 
-- **Délai de déclaration** : l'application calcule une date limite indicative (trois jours francs avant,
-  article L211-1 du Code de la sécurité intérieure). Vérifiez les règles applicables à votre
-  manifestation auprès de la préfecture compétente.
+- **Délai de déclaration** : l'application calcule une période indicative (de quinze à trois jours francs avant,
+  article L211-2 du Code de la sécurité intérieure). Le guide légal de l'application est informatif et ne
+  remplace pas un conseil juridique : vérifiez les règles applicables auprès de votre mairie ou préfecture.
 - **Données personnelles** : l'application contient des noms, e-mails et lieux de personnes. Ne l'utilisez
   qu'avec un accès restreint, et pensez à un cadre de protection des données (RGPD).
 - **Sécurité** : la clé `anon` est publique par conception. La protection repose sur les règles RLS de la

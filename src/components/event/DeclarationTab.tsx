@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { getDeclaration, saveDeclaration } from "../../lib/api";
-import { daysUntil, declarationDeadline } from "../../lib/declaration";
+import { Link } from "react-router-dom";
+import { daysUntil, declarationDeadline, declarationEarliest, declarationWindow } from "../../lib/declaration";
 import type { DeclarationRow, EventRow } from "../../lib/types";
 
 type Props = { eventId: string; event: EventRow; canEdit: boolean };
@@ -47,27 +48,48 @@ export function DeclarationTab({ eventId, event, canEdit }: Props) {
 
   const start = new Date(event.starts_at);
   const deadline = declarationDeadline(start);
+  const earliest = declarationEarliest(start);
+  const windowState = declarationWindow(start, new Date());
   const left = daysUntil(deadline, new Date());
   const submitted = Boolean(submittedAt);
+  const tone = submitted ? "notice-ok" : windowState === "depassee" ? "notice-error" : "notice-warn";
 
   return (
     <div className="stack">
-      <div className={`notice ${submitted ? "notice-ok" : left < 0 ? "notice-error" : "notice-warn"}`}>
+      <div className={`notice ${tone}`}>
         {submitted ? (
-          <>Déclaration déposée{reference && ` (réf. ${reference})`}.</>
-        ) : left < 0 ? (
-          <>La date limite de déclaration ({fmt(deadline)}) est dépassée.</>
+          <>Déclaration déposée{reference && ` (récépissé ${reference})`}.</>
+        ) : windowState === "trop_tot" ? (
+          <>
+            Trop tôt pour déclarer : le dépôt est possible à partir du <strong>{fmt(earliest)}</strong> (15 jours
+            francs avant), et au plus tard le <strong>{fmt(deadline)}</strong>.
+          </>
+        ) : windowState === "depassee" ? (
+          <>La date limite de déclaration ({fmt(deadline)}) est dépassée. Contactez sans attendre votre mairie ou votre préfecture.</>
         ) : (
           <>
-            Date limite de déclaration : <strong>{fmt(deadline)}</strong>
+            Vous pouvez déclarer dès maintenant, au plus tard le <strong>{fmt(deadline)}</strong>
             {left === 0 ? " (aujourd'hui)" : ` (dans ${left} jour${left > 1 ? "s" : ""})`}.
           </>
         )}
         <div className="small">
-          Calcul indicatif : au moins trois jours francs avant la manifestation (article L211-1 du Code de la
-          sécurité intérieure). Vérifiez auprès de la préfecture compétente.
+          Période indicative : de 15 jours francs à 3 jours francs avant la manifestation (article L211-2 du Code de la
+          sécurité intérieure). Vérifiez auprès de la mairie ou de la préfecture compétente.{" "}
+          <Link to="/guide">Lire le guide légal</Link>
         </div>
       </div>
+
+      <section className="card">
+        <h3>À préparer pour la déclaration</h3>
+        <ul>
+          <li>Noms, prénoms et domiciles des organisateurs</li>
+          <li>Signature d'au moins l'un des organisateurs</li>
+          <li>But de la manifestation, lieu, date et heure du rassemblement</li>
+          <li>Itinéraire prévu, le cas échéant</li>
+          <li>À déposer à la mairie (préfecture de police à Paris, préfecture dans les communes en police d'État)</li>
+          <li>Demander le récépissé et le noter ci-dessous</li>
+        </ul>
+      </section>
 
       {!loaded ? (
         <p className="muted">Chargement…</p>

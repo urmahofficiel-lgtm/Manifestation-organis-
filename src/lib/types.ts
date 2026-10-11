@@ -20,6 +20,14 @@ export const STATUSES = [
   { id: "termine", label: "Terminé" },
 ] as const;
 
+export const ACCOUNT_TYPES = [
+  { id: "individu", label: "Citoyen ou personne seule", hint: "Vous organisez à titre personnel ou avec des proches." },
+  { id: "association", label: "Association", hint: "Association déclarée ou non, avec ses membres et bénévoles." },
+  { id: "syndicat", label: "Syndicat", hint: "Section syndicale, union locale ou organisation professionnelle." },
+  { id: "collectif", label: "Collectif ou groupe informel", hint: "Un groupe de personnes réunies autour d'une cause commune." },
+] as const;
+
+export type AccountType = (typeof ACCOUNT_TYPES)[number]["id"];
 export type ThemeId = (typeof THEMES)[number]["id"];
 export type StatusId = (typeof STATUSES)[number]["id"];
 export type Role = "owner" | "organizer" | "member";
@@ -44,6 +52,7 @@ export type EventRow = {
   lat: number | null;
   lng: number | null;
   expected_count: number | null;
+  organizer_name: string;
   created_by: string;
   created_at: string;
 };
@@ -86,3 +95,36 @@ export type DeclarationRow = {
   reference: string;
   notes: string;
 };
+
+export type MyProfile = Profile & { account_type: AccountType; organization_name: string };
+
+export type SloganRow = {
+  id: string;
+  event_id: string;
+  text: string;
+  author_id: string;
+  status: "propose" | "valide";
+  created_at: string;
+};
+
+export type MessageRow = {
+  id: string;
+  event_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+};
+
+export type InviteRow = {
+  id: string;
+  event_id: string;
+  code: string;
+  role: "organizer" | "member";
+  expires_at: string;
+  max_uses: number | null;
+  uses: number;
+  revoked: boolean;
+  created_at: string;
+};
+
+export type InvitePreview = { event_title: string; starts_at: string; organizer_name: string };

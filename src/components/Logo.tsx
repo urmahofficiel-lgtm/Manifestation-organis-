@@ -1,0 +1,25 @@
+// Logo : une bannière levée sur une hampe, avec trois personnes rassemblées dessous.
+export function LogoMark({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" role="img" aria-label="Logo Manifestation Organiser">
+      <rect width="48" height="48" rx="10" fill="#b91c1c" />
+      <rect x="13" y="8" width="2.5" height="22" rx="1.25" fill="#fff" />
+      <path d="M15.5 9.5h20l-4.5 5.5 4.5 5.5h-20z" fill="#fff" />
+      <circle cx="14" cy="36" r="3.4" fill="#fff" />
+      <circle cx="24" cy="34" r="3.9" fill="#fff" />
+      <circle cx="34" cy="36" r="3.4" fill="#fff" />
+      <path d="M8.5 44c0-3.6 2.4-5.4 5.5-5.4s5.5 1.8 5.5 5.4z" fill="#fff" />
+      <path d="M17.5 44c0-4.2 2.8-6.2 6.5-6.2s6.5 2 6.5 6.2z" fill="#fff" />
+      <path d="M28.5 44c0-3.6 2.4-5.4 5.5-5.4s5.5 1.8 5.5 5.4z" fill="#fff" />
+    </svg>
+  );
+}
+
+export function Logo() {
+  return (
+    <span className="logo">
+      <LogoMark size={30} />
+      <span className="logo-text">Manifestation Organiser</span>
+    </span>
+  );
+}

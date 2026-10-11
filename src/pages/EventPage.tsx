@@ -8,6 +8,9 @@ import { TeamTab } from "../components/event/TeamTab";
 import { TasksTab } from "../components/event/TasksTab";
 import { MaterialTab } from "../components/event/MaterialTab";
 import { AnnouncementsTab } from "../components/event/AnnouncementsTab";
+import { SlogansTab } from "../components/event/SlogansTab";
+import { ChatTab } from "../components/event/ChatTab";
+import { InvitesTab } from "../components/event/InvitesTab";
 import { DeclarationTab } from "../components/event/DeclarationTab";
 import type { EventRow, MemberRow } from "../lib/types";
 
@@ -16,6 +19,9 @@ const TABS = [
   { id: "equipe", label: "Équipe" },
   { id: "taches", label: "Tâches" },
   { id: "materiel", label: "Matériel" },
+  { id: "slogans", label: "Slogans" },
+  { id: "discussion", label: "Discussion" },
+  { id: "invitations", label: "Invitations" },
   { id: "annonces", label: "Annonces" },
   { id: "demarches", label: "Démarches" },
 ] as const;
@@ -48,7 +54,7 @@ export function EventPage() {
   if (error) {
     return (
       <p className="error">
-        {error} <Link to="/">Retour aux événements</Link>
+        {error} <Link to="/evenements">Retour aux événements</Link>
       </p>
     );
   }
@@ -66,13 +72,13 @@ export function EventPage() {
   async function removeEvent() {
     if (!window.confirm("Supprimer définitivement cet événement et toutes ses données ?")) return;
     await deleteEvent(id);
-    navigate("/");
+    navigate("/evenements");
   }
 
   return (
     <>
       <p>
-        <Link to="/">← Mes événements</Link>
+        <Link to="/evenements">← Mes événements</Link>
       </p>
       <div className="page-head">
         <div>
@@ -107,6 +113,16 @@ export function EventPage() {
         )}
         {tab === "taches" && <TasksTab eventId={id} members={members} userId={user.id} canEdit={canEdit} />}
         {tab === "materiel" && <MaterialTab eventId={id} members={members} canEdit={canEdit} />}
+        {tab === "slogans" && (
+          <SlogansTab eventId={id} theme={event.theme} members={members} userId={user.id} canEdit={canEdit} />
+        )}
+        {tab === "discussion" && <ChatTab eventId={id} members={members} userId={user.id} canEdit={canEdit} />}
+        {tab === "invitations" &&
+          (canEdit ? (
+            <InvitesTab eventId={id} userId={user.id} />
+          ) : (
+            <p className="muted">Seuls les organisateurs peuvent créer des liens d'invitation.</p>
+          ))}
         {tab === "annonces" && <AnnouncementsTab eventId={id} userId={user.id} canEdit={canEdit} />}
         {tab === "demarches" && <DeclarationTab eventId={id} event={event} canEdit={canEdit} />}
       </section>

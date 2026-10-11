@@ -38,6 +38,12 @@ export function InfoTab({ event, canEdit, onSave, onDelete }: Props) {
           {new Date(event.starts_at).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}
           {event.ends_at && ` → ${new Date(event.ends_at).toLocaleString("fr-FR", { timeStyle: "short" })}`}
         </dd>
+        {event.organizer_name && (
+          <>
+            <dt>Organisé par</dt>
+            <dd>{event.organizer_name}</dd>
+          </>
+        )}
         <dt>Thème</dt>
         <dd>{theme}</dd>
         <dt>Lieu</dt>

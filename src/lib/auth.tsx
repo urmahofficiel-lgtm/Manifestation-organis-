@@ -1,13 +1,22 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
+import type { AccountType } from "./types";
+
+export type SignUpInput = {
+  email: string;
+  password: string;
+  fullName: string;
+  accountType: AccountType;
+  organizationName: string;
+};
 
 type AuthState = {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (input: SignUpInput) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -37,11 +46,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(traduireErreur(error.message));
     },
-    async signUp(email, password, fullName) {
+    async signUp({ email, password, fullName, accountType, organizationName }) {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName, account_type: accountType, organization_name: organizationName },
+        },
       });
       if (error) throw new Error(traduireErreur(error.message));
     },
@@ -66,6 +77,8 @@ async function ensureProfile(user: User) {
       id: user.id,
       email: user.email ?? "",
       full_name: (user.user_metadata?.full_name as string | undefined) ?? "",
+      account_type: (user.user_metadata?.account_type as string | undefined) ?? "individu",
+      organization_name: (user.user_metadata?.organization_name as string | undefined) ?? "",
     },
     { onConflict: "id", ignoreDuplicates: true },
   );

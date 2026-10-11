@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createEvent, listEvents } from "../lib/api";
+import { createEvent, getMyProfile, listEvents } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { EventForm } from "../components/EventForm";
 import { StatusBadge } from "../components/StatusBadge";
-import { THEMES, type EventRow } from "../lib/types";
+import { THEMES, type EventRow, type MyProfile } from "../lib/types";
 
 export function EventsPage() {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ export function EventsPage() {
   const [events, setEvents] = useState<EventRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [profile, setProfile] = useState<MyProfile | null>(null);
 
   async function load() {
     try {
@@ -24,6 +25,10 @@ export function EventsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (user) getMyProfile(user.id).then(setProfile).catch(() => setProfile(null));
+  }, [user]);
 
   const now = Date.now();
   const upcoming = events?.filter((e) => new Date(e.starts_at).getTime() >= now) ?? [];
@@ -44,6 +49,8 @@ export function EventsPage() {
         <section className="card">
           <h2>Nouvel événement</h2>
           <EventForm
+            initial={{ organizer_name: profile?.organization_name || profile?.full_name || "" }}
+            key={profile?.id ?? "no-profile"}
             submitLabel="Créer l'événement"
             onCancel={() => setCreating(false)}
             onSubmit={async (input) => {

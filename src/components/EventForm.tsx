@@ -24,6 +24,7 @@ export function EventForm({ initial, submitLabel, showStatus = false, onSubmit, 
   const [lat, setLat] = useState<number | null>(initial?.lat ?? null);
   const [lng, setLng] = useState<number | null>(initial?.lng ?? null);
   const [expected, setExpected] = useState(initial?.expected_count?.toString() ?? "");
+  const [organizer, setOrganizer] = useState(initial?.organizer_name ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -48,6 +49,7 @@ export function EventForm({ initial, submitLabel, showStatus = false, onSubmit, 
         lat,
         lng,
         expected_count: expected ? Number(expected) : null,
+        organizer_name: organizer.trim(),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Enregistrement impossible.");
@@ -61,6 +63,15 @@ export function EventForm({ initial, submitLabel, showStatus = false, onSubmit, 
       <label>
         Titre
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} required />
+      </label>
+      <label>
+        Organisé par
+        <input
+          value={organizer}
+          onChange={(e) => setOrganizer(e.target.value)}
+          maxLength={120}
+          placeholder="Nom de l'association, du syndicat, du collectif ou des organisateurs"
+        />
       </label>
       <label>
         Description
