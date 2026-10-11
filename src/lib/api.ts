@@ -5,12 +5,15 @@ import type {
   AnnouncementRow,
   DeclarationRow,
   EventRow,
+  EventSummary,
   InvitePreview,
   InviteRow,
   MaterialRow,
   MemberRow,
   MessageRow,
   MyProfile,
+  MyTask,
+  PublicEvent,
   Role,
   SloganRow,
   TaskRow,
@@ -33,7 +36,7 @@ export async function getEvent(id: string): Promise<EventRow> {
   return unwrap(await supabase.from("events").select("*").eq("id", id).single());
 }
 
-export type EventInput = Omit<EventRow, "id" | "created_by" | "created_at">;
+export type EventInput = Omit<EventRow, "id" | "created_by" | "created_at" | "is_public">;
 
 export async function createEvent(input: EventInput, userId: string): Promise<string> {
   // Pas de .select() ici : le créateur devient membre par trigger, et la lecture
@@ -271,4 +274,78 @@ export async function previewInvite(code: string): Promise<InvitePreview | null>
 
 export async function joinByCode(code: string): Promise<string> {
   return unwrap(await supabase.rpc("join_event_by_code", { invite_code: code })) as string;
+}
+
+// Tableau de bord et résumé d'un événement
+
+async function countRows(
+  table: string,
+  filter: (q: ReturnType<ReturnType<typeof supabase.from>["select"]>) => typeof q,
+): Promise<number> {
+  const { count, error } = await filter(supabase.from(table).select("*", { count: "exact", head: true }));
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+export async function getEventSummary(
+  eventId: string,
+  userId: string,
+  lastSeen: string | null,
+): Promise<EventSummary> {
+  const byEvent = (q: ReturnType<ReturnType<typeof supabase.from>["select"]>) => q.eq("event_id", eventId);
+  const [members, tasksTotal, tasksDone, materials, slogansValid, slogansProposed, messages, unread, announcements, declaration] =
+    await Promise.all([
+      countRows("event_members", byEvent),
+      countRows("tasks", byEvent),
+      countRows("tasks", (q) => byEvent(q).eq("done", true)),
+      countRows("materials", byEvent),
+      countRows("slogans", (q) => byEvent(q).eq("status", "valide")),
+      countRows("slogans", (q) => byEvent(q).eq("status", "propose")),
+      countRows("messages", byEvent),
+      countRows("messages", (q) => {
+        const base = byEvent(q).neq("author_id", userId);
+        return lastSeen ? base.gt("created_at", lastSeen) : base;
+      }),
+      countRows("announcements", byEvent),
+      getDeclaration(eventId),
+    ]);
+  return {
+    members,
+    tasksTotal,
+    tasksDone,
+    materials,
+    slogansValid,
+    slogansProposed,
+    messages,
+    unread,
+    announcements,
+    declarationSubmitted: Boolean(declaration?.submitted_at),
+  };
+}
+
+export async function listMyOpenTasks(userId: string): Promise<MyTask[]> {
+  return unwrap(
+    await supabase
+      .from("tasks")
+      .select("id, title, done, event_id, events(title, starts_at)")
+      .eq("assignee_id", userId)
+      .eq("done", false)
+      .order("created_at"),
+  ) as unknown as MyTask[];
+}
+
+// Page publique
+
+export async function setEventPublic(id: string, isPublic: boolean): Promise<void> {
+  unwrap(await supabase.from("events").update({ is_public: isPublic }).eq("id", id));
+}
+
+export async function getPublicEvent(id: string): Promise<PublicEvent | null> {
+  const rows = unwrap(await supabase.rpc("get_public_event", { ev: id })) as PublicEvent[] | null;
+  return rows && rows.length > 0 ? rows[0] : null;
+}
+
+export async function getPublicSlogans(id: string): Promise<string[]> {
+  const rows = unwrap(await supabase.rpc("get_public_slogans", { ev: id })) as { text: string }[] | null;
+  return (rows ?? []).map((r) => r.text);
 }

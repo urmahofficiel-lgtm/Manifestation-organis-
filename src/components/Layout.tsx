@@ -1,10 +1,13 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../lib/auth";
 import { Logo } from "./Logo";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const location = useLocation();
+  // La page publique d'un événement s'affiche sans le menu de l'application.
+  const isPublicPage = location.pathname.startsWith("/e/");
 
   return (
     <div className="app">
@@ -12,33 +15,65 @@ export function Layout({ children }: { children: ReactNode }) {
         <Link to="/" className="brand" aria-label="Accueil">
           <Logo />
         </Link>
-        <nav className="topbar-actions">
-          <NavLink to="/guide" className="navlink">
-            Guide légal
-          </NavLink>
+        <nav className="topbar-actions" aria-label="Navigation principale">
           {user ? (
             <>
-              <NavLink to="/evenements" className="navlink">
-                Mes événements
+              <NavLink to="/evenements" end className="navlink desktop-only">
+                Mes manifs
+              </NavLink>
+              <NavLink to="/evenements/nouveau" className="navlink desktop-only">
+                + Créer
+              </NavLink>
+              <NavLink to="/guide" className="navlink desktop-only">
+                Guide légal
               </NavLink>
               <button className="btn btn-ghost" onClick={() => signOut()}>
-                Se déconnecter
+                Déconnexion
               </button>
             </>
           ) : (
-            <Link to="/connexion" className="btn btn-primary">
-              Se connecter
-            </Link>
+            <>
+              <NavLink to="/guide" className="navlink">
+                Guide légal
+              </NavLink>
+              <Link to="/connexion" className="btn btn-yellow">
+                Se connecter
+              </Link>
+            </>
           )}
         </nav>
       </header>
+
       <main className="container">{children}</main>
-      <footer className="footer">
-        <p className="muted small">
-          Manifestation Organiser est un outil d'organisation. Il ne remplace ni un conseil juridique ni les
-          démarches officielles. <Link to="/guide">Voir le guide légal</Link>
-        </p>
-      </footer>
+
+      {!isPublicPage && (
+        <footer className="footer">
+          <p className="muted small">
+            Manifestation Organiser est un outil d'organisation. Il ne remplace ni un conseil juridique ni les
+            démarches officielles. <Link to="/guide">Guide légal</Link>
+          </p>
+        </footer>
+      )}
+
+      {user && !isPublicPage && (
+        <nav className="bottom-nav" aria-label="Navigation mobile">
+          <NavLink to="/evenements" end>
+            <span className="nav-icon" aria-hidden>
+              🏠
+            </span>
+            Mes manifs
+          </NavLink>
+          <NavLink to="/evenements/nouveau" className="create" aria-label="Créer un événement">
+            +
+          </NavLink>
+          <NavLink to="/guide">
+            <span className="nav-icon" aria-hidden>
+              ⚖️
+            </span>
+            Guide légal
+          </NavLink>
+        </nav>
+      )}
     </div>
   );
 }

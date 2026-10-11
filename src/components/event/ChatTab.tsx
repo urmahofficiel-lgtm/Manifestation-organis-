@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { createMessage, deleteMessage, listMessages } from "../../lib/api";
+import { markSeen } from "../../lib/seen";
 import type { MemberRow, MessageRow } from "../../lib/types";
 
 type Props = { eventId: string; members: MemberRow[]; userId: string; canEdit: boolean };
@@ -17,6 +18,7 @@ export function ChatTab({ eventId, members, userId, canEdit }: Props) {
   const load = useCallback(async () => {
     try {
       setMessages(await listMessages(eventId));
+      markSeen(eventId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chargement impossible.");
     }

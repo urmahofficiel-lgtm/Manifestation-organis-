@@ -53,6 +53,7 @@ export type EventRow = {
   lng: number | null;
   expected_count: number | null;
   organizer_name: string;
+  is_public: boolean;
   created_by: string;
   created_at: string;
 };
@@ -128,3 +129,53 @@ export type InviteRow = {
 };
 
 export type InvitePreview = { event_title: string; starts_at: string; organizer_name: string };
+
+export type PublicEvent = Pick<
+  EventRow,
+  | "id"
+  | "title"
+  | "description"
+  | "theme"
+  | "starts_at"
+  | "ends_at"
+  | "place_name"
+  | "address"
+  | "lat"
+  | "lng"
+  | "organizer_name"
+  | "expected_count"
+>;
+
+export type EventSummary = {
+  members: number;
+  tasksTotal: number;
+  tasksDone: number;
+  materials: number;
+  slogansValid: number;
+  slogansProposed: number;
+  messages: number;
+  unread: number;
+  announcements: number;
+  declarationSubmitted: boolean;
+};
+
+export type MyTask = {
+  id: string;
+  title: string;
+  done: boolean;
+  event_id: string;
+  events: { title: string; starts_at: string } | null;
+};
+
+// Couleur d'affiche associée à chaque thème
+export const THEME_COLORS: Record<ThemeId, string> = {
+  climat: "#1f9d55",
+  travail: "#e4002b",
+  droits: "#7b2cbf",
+  education: "#1d4ed8",
+  sante: "#0f8b8d",
+  logement: "#f97316",
+  paix: "#0ea5e9",
+  culture: "#db2777",
+  autre: "#111111",
+};

@@ -6,17 +6,17 @@ connaît et travaille à plusieurs.
 
 ## Fonctionnalités
 
+- **Style affiche de manif**, pensé d'abord pour le téléphone (menu fixe en bas, gros bouton « + »).
 - **Page d'accueil** publique et **guide légal** (déclaration d'une manifestation en France).
 - **Inscription adaptée** : citoyen, association, syndicat ou collectif, avec le nom de l'organisation.
-- **Événements** : titre, thème, organisateur, date et heure, lieu, point de rassemblement sur la carte,
-  participants attendus, statut (brouillon, à déclarer, déclaré, confirmé, terminé).
-- **Équipe** : ajout par e-mail ou **lien d'invitation** (valable 30 jours, nombre d'usages limitable),
-  rôles propriétaire / organisateur / membre.
-- **Tâches**, **matériel** (quantité, gardien, emplacement), **annonces**.
-- **Slogans** : propositions des membres, validation par les organisateurs, idées par thème.
-- **Discussion d'équipe** par événement (rafraîchie toutes les 5 secondes).
-- **Démarches** : suivi de la déclaration, avec la période de dépôt calculée (de 15 jours francs à
-  3 jours francs avant la manifestation).
+- **Tableau de bord** : prochaine manif avec compte à rebours, mes tâches à faire, toutes mes manifs.
+- **Page d'une manif** : affiche, prochaines étapes avec progression, et tuiles avec compteurs :
+  infos et carte, équipe, tâches, matériel, slogans, discussion (messages non lus), annonces,
+  démarches, invitations.
+- **Page publique à partager** (`/e/:id`), activable par les organisateurs : date, lieu, carte,
+  slogans validés, partage WhatsApp. Le public ne voit jamais l'équipe, les tâches ni les messages.
+- **Invitations par lien** (rôle, 30 jours, nombre d'usages), **slogans** (propositions et validation),
+  **démarches** avec la période de dépôt calculée (de 15 à 3 jours francs avant la manifestation).
 
 ## Architecture
 
@@ -87,7 +87,7 @@ supabase/migrations/    schéma SQL et règles d'accès (à exécuter dans Supab
 
 1. Créez un compte sur [supabase.com](https://supabase.com) et un nouveau projet.
 2. Ouvrez **SQL Editor**, collez le contenu de `supabase/migrations/0001_init.sql`, cliquez sur **Run**, puis
-   faites de même avec `supabase/migrations/0002_features.sql`.
+   faites de même avec `0002_features.sql` puis `0003_public_page.sql`.
    Toutes les tables sont créées dans le schéma `manifestation`. Si le projet est partagé avec d'autres applications, ajoutez ce schéma dans **Settings → API → Exposed schemas**.
 3. Dans **Project Settings → API**, copiez l'URL du projet et la clé `anon public`.
 4. Dans **Authentication → Providers → Email**, activez l'e-mail. Pour tester sans confirmation par

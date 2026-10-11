@@ -1,23 +1,22 @@
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { LogoMark } from "../components/Logo";
 
 const AUDIENCES = [
-  { title: "Associations", text: "Coordonnez vos bénévoles, vos membres et vos actions, de la préparation au jour J." },
-  { title: "Syndicats", text: "Préparez vos rassemblements, vos cortèges et vos services d'ordre avec toute l'équipe." },
-  { title: "Collectifs", text: "Un espace commun pour un groupe informel : tout le monde voit la même information." },
-  { title: "Citoyens", text: "Vous organisez pour la première fois ? Suivez les étapes et les démarches pas à pas." },
+  { title: "Associations", text: "Coordonnez bénévoles et membres, de la préparation au jour J." },
+  { title: "Syndicats", text: "Rassemblements, cortèges, service d'ordre : toute l'équipe au même endroit." },
+  { title: "Collectifs", text: "Un espace commun pour un groupe informel, où chacun voit la même information." },
+  { title: "Citoyens", text: "Première manif ? Suivez les étapes et les démarches pas à pas." },
 ];
 
 const FEATURES = [
-  { title: "Événements et carte", text: "Date, lieu, point de rassemblement placé sur la carte, nombre de participants attendus." },
-  { title: "Équipe et invitations", text: "Invitez par lien ou par e-mail, attribuez des rôles : propriétaire, organisateur, membre." },
-  { title: "Tâches", text: "Qui fait quoi, pour quand, avec une case à cocher quand c'est fait." },
-  { title: "Matériel", text: "Banderoles, sono, gilets, eau : combien, qui les garde, où ils sont." },
-  { title: "Slogans", text: "Proposez, validez et gardez les slogans de la mobilisation, avec des idées pour démarrer." },
-  { title: "Discussion d'équipe", text: "Un fil de discussion par événement, réservé aux membres." },
-  { title: "Annonces", text: "Les consignes importantes visibles de tous : rendez-vous, changements d'horaire." },
-  { title: "Démarches", text: "Suivi de la déclaration, avec la période de dépôt calculée pour vous." },
+  { icon: "📍", title: "Lieu et carte", text: "Le point de rassemblement placé sur la carte, la date, l'heure." },
+  { icon: "👥", title: "Équipe", text: "Invitez par lien, donnez des rôles : organisateur ou membre." },
+  { icon: "✅", title: "Tâches", text: "Qui fait quoi, pour quand. On coche quand c'est fait." },
+  { icon: "📦", title: "Matériel", text: "Banderoles, sono, gilets, eau : qui les garde et où." },
+  { icon: "📣", title: "Slogans", text: "Proposez et validez les slogans du cortège." },
+  { icon: "💬", title: "Discussion", text: "Un fil de discussion par manif, réservé à l'équipe." },
+  { icon: "📝", title: "Démarches", text: "La période de déclaration calculée pour vous." },
+  { icon: "🔗", title: "Page à partager", text: "Une affiche en ligne de votre manif à envoyer sur WhatsApp." },
 ];
 
 export function HomePage() {
@@ -25,29 +24,31 @@ export function HomePage() {
   if (!loading && user) return <Navigate to="/evenements" replace />;
 
   return (
-    <div className="home">
-      <section className="hero">
-        <LogoMark size={64} />
-        <h1>Organisez vos manifestations ensemble, au même endroit</h1>
-        <p className="lead">
-          Événements, équipe, tâches, matériel, slogans, discussion et démarches : tout ce qu'il faut pour
-          préparer un rassemblement, sans jongler entre dix outils.
+    <div>
+      <section className="hero-poster">
+        <span className="badge">Gratuit · Pour associations, syndicats, collectifs et citoyens</span>
+        <h2 className="hero-title">
+          Organisez. <mark>Mobilisez.</mark> Manifestez.
+        </h2>
+        <p className="hero-lead">
+          Lieu, équipe, tâches, matériel, slogans, discussion et déclaration en mairie : toute votre manif au même
+          endroit, sur téléphone comme sur ordinateur.
         </p>
-        <div className="row center wrap">
-          <Link to="/connexion?mode=inscription" className="btn btn-primary btn-lg">
-            Créer un compte gratuit
+        <div className="row wrap">
+          <Link to="/connexion?mode=inscription" className="btn btn-yellow btn-lg">
+            Créer mon compte
           </Link>
           <Link to="/connexion" className="btn btn-lg">
-            Se connecter
+            J'ai déjà un compte
           </Link>
         </div>
       </section>
 
-      <section>
-        <h2>Pour qui ?</h2>
+      <section className="section">
+        <h2 className="section-title">Pour qui ?</h2>
         <div className="grid-cards">
           {AUDIENCES.map((a) => (
-            <article key={a.title} className="card">
+            <article key={a.title} className="card audience">
               <h3>{a.title}</h3>
               <p className="muted">{a.text}</p>
             </article>
@@ -55,11 +56,14 @@ export function HomePage() {
         </div>
       </section>
 
-      <section>
-        <h2>Tout pour préparer le jour J</h2>
+      <section className="section">
+        <h2 className="section-title">Tout pour le jour J</h2>
         <div className="grid-cards">
           {FEATURES.map((f) => (
             <article key={f.title} className="card">
+              <span className="feature-icon" aria-hidden>
+                {f.icon}
+              </span>
               <h3>{f.title}</h3>
               <p className="muted">{f.text}</p>
             </article>
@@ -67,13 +71,15 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="card notice notice-warn">
-        <h2>Respecter la loi</h2>
+      <section className="section cta-band">
+        <h2>Dans les règles</h2>
         <p>
-          En France, une manifestation sur la voie publique doit être déclarée en amont, entre quinze et trois jours
-          francs avant sa tenue. L'application calcule la période pour vous et vous guide pas à pas.
+          En France, une manifestation sur la voie publique se déclare entre 15 et 3 jours francs avant. L'application
+          calcule les dates pour vous.
         </p>
-        <Link to="/guide">Lire le guide légal</Link>
+        <Link to="/guide" className="btn">
+          Lire le guide légal
+        </Link>
       </section>
     </div>
   );

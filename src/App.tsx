@@ -7,7 +7,9 @@ import { HomePage } from "./pages/HomePage";
 import { GuidePage } from "./pages/GuidePage";
 import { LoginPage } from "./pages/LoginPage";
 import { InvitePage } from "./pages/InvitePage";
-import { EventsPage } from "./pages/EventsPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { NewEventPage } from "./pages/NewEventPage";
+import { PublicEventPage } from "./pages/PublicEventPage";
 import { EventPage } from "./pages/EventPage";
 import { SetupPage } from "./pages/SetupPage";
 
@@ -31,16 +33,33 @@ export default function App() {
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/connexion" element={<LoginPage />} />
         <Route path="/invitation/:code" element={<InvitePage />} />
+        <Route path="/e/:id" element={<PublicEventPage />} />
         <Route
           path="/evenements"
           element={
             <RequireAuth>
-              <EventsPage />
+              <DashboardPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/evenements/nouveau"
+          element={
+            <RequireAuth>
+              <NewEventPage />
             </RequireAuth>
           }
         />
         <Route
           path="/evenements/:id"
+          element={
+            <RequireAuth>
+              <EventPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/evenements/:id/:section"
           element={
             <RequireAuth>
               <EventPage />
