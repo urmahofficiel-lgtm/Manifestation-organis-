@@ -1,12 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getDeclaration, getDeclarationIdentities, getEvent, listMembers, listSignatories, saveDeclaration } from "../lib/api";
+import {
+  getDeclaration,
+  getDeclarationIdentities,
+  getEvent,
+  listMembers,
+  listSignatories,
+  saveDeclaration,
+  uploadDeclarationDocument,
+} from "../lib/api";
+import { buildDeclarationPdf, downloadBlob } from "../lib/pdf";
+import { renderStaticMap } from "../lib/staticMap";
 import { extractPostcode, suggestAuthority } from "../lib/address";
 import { cityFromAddress, declarationChecklist } from "../lib/declarationCheck";
 import { useAuth } from "../lib/auth";
 import { EventMap, MapLegend } from "../components/EventMap";
 import { SignaturePad } from "../components/SignaturePad";
-import type { Declarant, DeclarationRow, EventRow, MemberRow } from "../lib/types";
+import { POI_KINDS, type Declarant, type DeclarationRow, type EventRow, type MemberRow } from "../lib/types";
 
 const time = (iso: string | null) =>
   iso ? new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "";
@@ -25,6 +35,10 @@ export function LetterPage() {
   const [signature, setSignature] = useState<string | null>(null);
   const [certified, setCertified] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [archived, setArchived] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const letterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([getEvent(id), listMembers(id), getDeclarationIdentities(id), listSignatories(id), getDeclaration(id)])
@@ -56,6 +70,38 @@ export function LetterPage() {
   const isStatic = event.route.length < 2 && !event.route_description.trim();
   const meIsSignatory = identities.some((d) => d.user_id === user.id);
   const incomplete = identities.filter((d) => !d.first_name || !d.last_name || !d.address_line || !d.city);
+
+  async function makePdf() {
+    if (!event || !user || !letterRef.current) return;
+    setBusy(true);
+    setPdfError(null);
+    try {
+      const mapImage = await renderStaticMap({
+        point: event.lat !== null && event.lng !== null ? [event.lat, event.lng] : null,
+        route: event.route,
+        pois: event.pois,
+      });
+      const legend = [
+        "Rouge : point de rassemblement et parcours.",
+        ...event.pois.map((p) => `${POI_KINDS.find((k) => k.id === p.kind)?.label ?? "Repère"} : ${p.label}`),
+      ].join("  ·  ");
+      const blob = await buildDeclarationPdf(letterRef.current, {
+        mapImage,
+        legend,
+        itinerary: event.route_description,
+      });
+      const date = new Date().toISOString().slice(0, 10);
+      const fileName = `declaration-manifestation-${date}.pdf`;
+      downloadBlob(blob, fileName);
+      await uploadDeclarationDocument(id, "lettre", blob, fileName, user.id);
+      await saveDeclaration(id, { letter_generated_at: new Date().toISOString() });
+      setArchived(true);
+    } catch (err) {
+      setPdfError(err instanceof Error ? err.message : "Impossible de créer le PDF.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function print() {
     try {
@@ -99,15 +145,25 @@ export function LetterPage() {
           </span>
         </label>
         <div className="row wrap">
-          <button className="btn btn-primary btn-lg" onClick={print} disabled={!certified}>
-            Imprimer ou enregistrer en PDF
+          <button className="btn btn-primary btn-lg" onClick={makePdf} disabled={!certified || busy}>
+            {busy ? "Création du PDF…" : "Créer le PDF et l'archiver"}
           </button>
-          <span className="small muted">Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF » pour l'envoyer par e-mail.</span>
+          <button className="btn" onClick={print} disabled={!certified}>
+            Imprimer
+          </button>
         </div>
+        {archived && (
+          <div className="notice notice-ok">
+            ✓ PDF téléchargé et archivé dans le dossier de la manif.{" "}
+            <Link to={`/evenements/${id}/demarches`}>Étape suivante : l'envoyer à la mairie →</Link>
+          </div>
+        )}
+        {pdfError && <p className="error">{pdfError}</p>}
         <p className="small muted">Aperçu :</p>
       </div>
 
       <article className="letter">
+        <div ref={letterRef} className="letter-body">
         <header className="letter-head">
           <div>
             {identities.map((d) => (
@@ -226,6 +282,7 @@ export function LetterPage() {
               )}
             </div>
           ))}
+        </div>
         </div>
 
         {(event.route.length > 1 || event.pois.length > 0 || event.lat !== null) && (

@@ -10,6 +10,7 @@ import type {
   ContactRow,
   DebriefRow,
   Declarant,
+  DeclarationDocument,
   FieldRole,
   DeclarationRow,
   EventRow,
@@ -207,7 +208,20 @@ export async function getDeclaration(eventId: string): Promise<DeclarationRow | 
 export async function saveDeclaration(
   eventId: string,
   input: Partial<
-    Pick<DeclarationRow, "authority" | "submitted_at" | "reference" | "notes" | "letter_generated_at" | "banned" | "ban_notes">
+    Pick<
+      DeclarationRow,
+      | "authority"
+      | "submitted_at"
+      | "reference"
+      | "notes"
+      | "letter_generated_at"
+      | "banned"
+      | "ban_notes"
+      | "authority_email"
+      | "authority_details"
+      | "sent_at"
+      | "sent_via"
+    >
   >,
 ): Promise<void> {
   unwrap(await supabase.from("declarations").upsert({ ...input, event_id: eventId }));
@@ -480,4 +494,59 @@ export async function getDebrief(eventId: string): Promise<DebriefRow | null> {
 
 export async function saveDebrief(input: DebriefRow): Promise<void> {
   unwrap(await supabase.from("debriefs").upsert({ ...input, updated_at: new Date().toISOString() }));
+}
+
+// Dossier de déclaration : fichiers archivés dans un espace de stockage privé
+
+const DOSSIER_BUCKET = "manifestation-declarations";
+
+export async function listDeclarationDocuments(eventId: string): Promise<DeclarationDocument[]> {
+  return unwrap(
+    await supabase
+      .from("declaration_documents")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false }),
+  );
+}
+
+export async function uploadDeclarationDocument(
+  eventId: string,
+  kind: DeclarationDocument["kind"],
+  file: Blob,
+  fileName: string,
+  userId: string,
+): Promise<DeclarationDocument> {
+  const ext = fileName.includes(".") ? fileName.split(".").pop() : "pdf";
+  const path = `${eventId}/${kind}-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from(DOSSIER_BUCKET).upload(path, file, {
+    contentType: file.type || "application/pdf",
+    upsert: false,
+  });
+  if (error) throw new Error(error.message);
+  return unwrap(
+    await supabase
+      .from("declaration_documents")
+      .insert({ event_id: eventId, kind, path, file_name: fileName, created_by: userId })
+      .select()
+      .single(),
+  );
+}
+
+export async function getDocumentUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from(DOSSIER_BUCKET).createSignedUrl(path, 600);
+  if (error || !data) throw new Error(error?.message ?? "Fichier introuvable.");
+  return data.signedUrl;
+}
+
+export async function downloadDocument(path: string): Promise<Blob> {
+  const { data, error } = await supabase.storage.from(DOSSIER_BUCKET).download(path);
+  if (error || !data) throw new Error(error?.message ?? "Fichier introuvable.");
+  return data;
+}
+
+export async function deleteDeclarationDocument(doc: DeclarationDocument): Promise<void> {
+  const { error } = await supabase.storage.from(DOSSIER_BUCKET).remove([doc.path]);
+  if (error) throw new Error(error.message);
+  unwrap(await supabase.from("declaration_documents").delete().eq("id", doc.id));
 }

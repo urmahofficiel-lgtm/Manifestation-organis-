@@ -386,3 +386,18 @@ details summary { cursor: pointer; font-weight: 700; margin: 0.75rem 0 0.5rem; }
 .story h2 { margin-top: 0; }
 /* Le logo (fond rouge) reste visible sur l'affiche rouge de l'accueil */
 .hero-poster svg { border: 3px solid var(--ink); border-radius: 16px; box-shadow: var(--shadow-sm); }
+
+/* Dossier de déclaration */
+.timeline-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; counter-reset: step; }
+.timeline-steps li {
+  counter-increment: step; text-align: center; font-weight: 800; font-size: 0.8rem; text-transform: uppercase;
+  border: 2px solid var(--line); border-radius: 10px; padding: 0.5rem 0.25rem; background: var(--surface);
+}
+.timeline-steps li::before { content: counter(step); display: block; font-size: 1.1rem; }
+.timeline-steps li.is-done { background: #86efac; }
+.timeline-steps li.is-done::before { content: "✓"; }
+.authority { display: flex; flex-direction: column; gap: 0.35rem; border: 2px solid var(--line); border-radius: 12px; padding: 0.8rem; background: var(--surface); }
+.authority.chosen { background: #ecfdf5; border-color: var(--ok); }
+.authority .btn { margin-top: 0.3rem; }
+.upload { cursor: pointer; width: max-content; max-width: 100%; }
+h4 { margin: 0.25rem 0; font-size: 0.95rem; font-weight: 800; }

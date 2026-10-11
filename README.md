@@ -22,6 +22,19 @@ connaît et travaille à plusieurs.
 - **Invitations par lien** (rôle, 30 jours, nombre d'usages), **slogans** (propositions et validation),
   **démarches** avec la période de dépôt calculée (de 15 à 3 jours francs avant la manifestation).
 
+## Déclaration : relier Agora à l'État, gratuitement
+
+- **Destinataire officiel trouvé automatiquement** : la commune est retrouvée avec la Base Adresse Nationale,
+  puis la mairie (ou la préfecture, ou la préfecture de police à Paris) dans l'**Annuaire de l'administration**
+  de Service-Public.fr (données officielles, licence ouverte) : e-mail quand il est publié, téléphone, adresse,
+  formulaire de contact.
+- **Vrai PDF** de la déclaration (lettre + plan en annexe), téléchargé et **archivé** dans un espace de stockage
+  privé, réservé aux organisateurs.
+- **Envoi depuis la messagerie de l'organisateur** (gratuit, et la mairie répond directement), ou par le formulaire
+  en ligne, en main propre ou par courrier ; l'envoi et le **récépissé** (photo ou PDF) sont suivis dans le dossier.
+- Il n'existe pas de service de l'État pour déposer en ligne une manifestation revendicative :
+  declaration-manifestations.gouv.fr concerne les manifestations sportives.
+
 ## Architecture
 
 ```
@@ -91,7 +104,8 @@ supabase/migrations/    schéma SQL et règles d'accès (à exécuter dans Supab
 
 1. Créez un compte sur [supabase.com](https://supabase.com) et un nouveau projet.
 2. Ouvrez **SQL Editor**, collez le contenu de `supabase/migrations/0001_init.sql`, cliquez sur **Run**, puis
-   faites de même avec `0002_features.sql` puis `0003_public_page.sql`.
+   faites de même, dans l'ordre, avec `0002_features.sql`, `0003_public_page.sql`, `0004_safety_declaration.sql`
+   et `0005_declaration_dossier.sql`.
    Toutes les tables sont créées dans le schéma `manifestation`. Si le projet est partagé avec d'autres applications, ajoutez ce schéma dans **Settings → API → Exposed schemas**.
 3. Dans **Project Settings → API**, copiez l'URL du projet et la clé `anon public`.
 4. Dans **Authentication → Providers → Email**, activez l'e-mail. Pour tester sans confirmation par

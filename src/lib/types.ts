@@ -114,6 +114,22 @@ export type DeclarationRow = {
   letter_generated_at: string | null;
   banned: boolean;
   ban_notes: string;
+  authority_email: string;
+  authority_details: Record<string, unknown>;
+  sent_at: string | null;
+  sent_via: SentVia | null;
+};
+
+export type SentVia = "email" | "formulaire" | "main" | "courrier";
+
+export type DeclarationDocument = {
+  id: string;
+  event_id: string;
+  kind: "lettre" | "recepisse" | "autre";
+  path: string;
+  file_name: string;
+  created_by: string;
+  created_at: string;
 };
 
 export type MyProfile = Profile & { account_type: AccountType; organization_name: string };
